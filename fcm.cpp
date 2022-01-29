@@ -16,7 +16,7 @@
 
 using namespace std;
 
-class fcm{
+class FCM{
     public:
         string print_queue(queue<char> q)
         {   
@@ -122,7 +122,7 @@ class fcm{
 };
 
 int main(int argc, char** argv) {
-  fcm fc;
+  FCM fc;
   double res = fc.main(argv[1],atoi(argv[2]), atoi(argv[3]));
   
   cout << res << endl;

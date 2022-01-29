@@ -139,30 +139,34 @@ int main(int argc, char** argv) {
     for (itrCtxChar = histMapCtxChar.begin(); itrCtxChar != histMapCtxChar.end(); ++itrCtxChar) {
         histCtxChar << itrCtxChar->first << "\t ----> \t" << itrCtxChar->second << endl;
         string tmp = itrCtxChar->first;
-        symbol_prob[tmp] = ( (double)(itrCtxChar->second + p) / (double)(histMapCtx[tmp.substr(0,3)] + ( p * alph)) ) * 100;
+        symbol_prob[tmp] = ( (double)(itrCtxChar->second + a) / (double)(histMapCtx[tmp.substr(0,k)] + ( a * alph)) ) * 100;
     }
     histCtxChar.close();
 
     ofstream symbol("symbol_prob.txt");
 
-    double context_entropy = 0;
+    map<string,double> context_entropy;
 
     map<string, double>::iterator itrSymbol;
     for (itrSymbol = symbol_prob.begin(); itrSymbol != symbol_prob.end(); ++itrSymbol) {
         symbol << itrSymbol->first << "\t ----> \t" << itrSymbol->second << endl;
-        context_entropy += (itrSymbol->second/100) * -( log2(itrSymbol->second /100) );
+        string tmp = itrSymbol->first;
+        context_entropy[tmp.substr(0,k)] += (itrSymbol->second/100) * -( log2(itrSymbol->second/100) );
     }
     symbol.close();
 
-    cout << context_entropy << endl;
-
     ofstream context("context_prob.txt");
+
+    double entropy = 0;
 
     map<string, double>::iterator itrContext;
     for (itrContext = context_prob.begin(); itrContext != context_prob.end(); ++itrContext) {
         context << itrContext->first << "\t ----> \t" << itrContext->second << endl;
+        entropy += (itrContext->second/100) * context_entropy[itrContext->first];
     }
     context.close();
+
+    cout << entropy << endl;
 
     return 0;
 }

@@ -16,157 +16,116 @@
 
 using namespace std;
 
-bool cmp(pair<string, int>& a,
-         pair<string, int>& b)
-{
-    return a.second > b.second;
-}
-  
-// Function to sort the map according
-// to value in a (key-value) pairs
-map<string,int> sort(map<string, int>& M)
-{
-  
-    // Declare vector of pairs
-    vector<pair<string, int> > A;
+class fcm{
+    public:
+        string print_queue(queue<char> q)
+        {   
+            string res = "";
+            while (!q.empty())
+            {
+                res += q.front();
+                q.pop();
+            }
+            return res;
+        }
 
-    map<string,int> res;
-  
-    // Copy key-value pair from Map
-    // to vector of pairs
-    for (auto& it : M) {
-        A.push_back(it);
-    }
-  
-    // Sort using comparator function
-    sort(A.begin(), A.end(), cmp);
+        double main(string file, int k, int a) {
+            ifstream ifs(file);
+            string line;
+            string allLines;
+            map<char,int> histMap;
+            map<string,int> histMapCtx;
+            map<string,int> histMapCtxChar;
+            map<string,double> symbol_prob;
+            map<string,double> context_prob;
 
-    for (auto& it : A) {
-  
-        res[it.first]=  it.second ;
-    }
+            int alph = 27;
+            
+            while(getline(ifs,line)){
+                allLines.append(line);
+            }
 
-    return res;
+            ifs.close();
 
-}
+            queue<char> q ;
 
+            for(int i = 0 ; i < k ; i++){
+                q.push(' ');
+            }
 
-string print_queue(queue<char> q)
-{   
-    string res = "";
-    while (!q.empty())
-    {
-        res += q.front();
-        q.pop();
-    }
-    return res;
-}
+            for( int i = 0; i < allLines.size(); ++i) {
+                histMap[allLines[i]] ++;
+                q.pop();
+                q.push(allLines[i]);
+                if (i >= k-1 ) {
+                    histMapCtx[print_queue(q)] ++;
+                    if(i + 1 != allLines.size()){
+                        histMapCtxChar[print_queue(q)+" "+allLines[i+1]]++;
+                    }
+                }
+            }
+            //histogram
+
+            ofstream hist("histChar.txt");
+
+            map<char, int>::iterator itr;
+            for (itr = histMap.begin(); itr != histMap.end(); ++itr) {
+                hist << itr->first << "\t ----> \t" << itr->second << endl;
+                //hist << itr->first << "\t ----> \t" << itr->second/(double)allLines.size() * 100 << endl;
+            }
+            hist.close();
+
+            ofstream histCtx("histCtx.txt");
+
+            map<string, int>::iterator itrCtx;
+            for (itrCtx = histMapCtx.begin(); itrCtx != histMapCtx.end(); ++itrCtx) {
+                histCtx << itrCtx->first << "\t ----> \t" << itrCtx->second << endl;
+                context_prob[itrCtx->first] = ( (double)itrCtx->second / (double)histMapCtx.size() ) * 100;
+            }
+            histCtx.close();
+
+            ofstream histCtxChar("histCtxChar.txt");
+
+            map<string, int>::iterator itrCtxChar;
+            for (itrCtxChar = histMapCtxChar.begin(); itrCtxChar != histMapCtxChar.end(); ++itrCtxChar) {
+                histCtxChar << itrCtxChar->first << "\t ----> \t" << itrCtxChar->second << endl;
+                string tmp = itrCtxChar->first;
+                symbol_prob[tmp] = ( (double)(itrCtxChar->second + a) / (double)(histMapCtx[tmp.substr(0,k)] + ( a * histMap.size())) ) * 100;
+            }
+            histCtxChar.close();
+
+            ofstream symbol("symbol_prob.txt");
+
+            map<string,double> context_entropy;
+
+            map<string, double>::iterator itrSymbol;
+            for (itrSymbol = symbol_prob.begin(); itrSymbol != symbol_prob.end(); ++itrSymbol) {
+                symbol << itrSymbol->first << "\t ----> \t" << itrSymbol->second << endl;
+                string tmp = itrSymbol->first;
+                context_entropy[tmp.substr(0,k)] += (itrSymbol->second/100) * -( log2(itrSymbol->second/100) );
+            }
+            symbol.close();
+
+            ofstream context("context_prob.txt");
+
+            double entropy = 0;
+
+            map<string, double>::iterator itrContext;
+            for (itrContext = context_prob.begin(); itrContext != context_prob.end(); ++itrContext) {
+                context << itrContext->first << "\t ----> \t" << itrContext->second << endl;
+                entropy += (itrContext->second/100) * context_entropy[itrContext->first];
+            }
+            context.close();
+
+            return entropy;
+        }
+};
 
 int main(int argc, char** argv) {
-
-    ifstream ifs(argv[1]);
-    string line;
-    string allLines;
-    map<char,int> histMap;
-    map<string,int> histMapCtx;
-    map<string,int> histMapCtxChar;
-    map<string,double> symbol_prob;
-    map<string,double> context_prob;
-
-    int alph = 27;
-    
-    while(getline(ifs,line)){
-        allLines.append(line);
-    }
-
-    ifs.close();
-
-    queue<char> q ;
-
-    stringstream str;
-     
-    str << argv[2]; int x; str >> x;
-    int k =  x;
-
-    stringstream ar;
-
-    ar << argv[3]; int p; ar >> p;
-    int a = p;
-
-    for(int i = 0 ; i < k ; i++){
-        q.push(' ');
-    }
-
-    for( int i = 0; i < allLines.size(); ++i) {
-        histMap[allLines[i]] ++;
-        q.pop();
-        q.push(allLines[i]);
-        if (i >= k-1 ) {
-            histMapCtx[print_queue(q)] ++;
-            if(i + 1 != allLines.size()){
-                histMapCtxChar[print_queue(q)+" "+allLines[i+1]]++;
-            }
-        }
-    }
-    histMapCtx = sort(histMapCtx);
-    histMapCtxChar = sort(histMapCtxChar);
-
-    
-
-    //histogram
-
-    ofstream hist("histChar.txt");
-
-    map<char, int>::iterator itr;
-    for (itr = histMap.begin(); itr != histMap.end(); ++itr) {
-        hist << itr->first << "\t ----> \t" << itr->second << endl;
-        //hist << itr->first << "\t ----> \t" << itr->second/(double)allLines.size() * 100 << endl;
-    }
-    hist.close();
-
-    ofstream histCtx("histCtx.txt");
-
-    map<string, int>::iterator itrCtx;
-    for (itrCtx = histMapCtx.begin(); itrCtx != histMapCtx.end(); ++itrCtx) {
-        histCtx << itrCtx->first << "\t ----> \t" << itrCtx->second << endl;
-        context_prob[itrCtx->first] = ( (double)itrCtx->second / (double)histMapCtx.size() ) * 100;
-    }
-    histCtx.close();
-
-    ofstream histCtxChar("histCtxChar.txt");
-
-    map<string, int>::iterator itrCtxChar;
-    for (itrCtxChar = histMapCtxChar.begin(); itrCtxChar != histMapCtxChar.end(); ++itrCtxChar) {
-        histCtxChar << itrCtxChar->first << "\t ----> \t" << itrCtxChar->second << endl;
-        string tmp = itrCtxChar->first;
-        symbol_prob[tmp] = ( (double)(itrCtxChar->second + a) / (double)(histMapCtx[tmp.substr(0,k)] + ( a * alph)) ) * 100;
-    }
-    histCtxChar.close();
-
-    ofstream symbol("symbol_prob.txt");
-
-    map<string,double> context_entropy;
-
-    map<string, double>::iterator itrSymbol;
-    for (itrSymbol = symbol_prob.begin(); itrSymbol != symbol_prob.end(); ++itrSymbol) {
-        symbol << itrSymbol->first << "\t ----> \t" << itrSymbol->second << endl;
-        string tmp = itrSymbol->first;
-        context_entropy[tmp.substr(0,k)] += (itrSymbol->second/100) * -( log2(itrSymbol->second/100) );
-    }
-    symbol.close();
-
-    ofstream context("context_prob.txt");
-
-    double entropy = 0;
-
-    map<string, double>::iterator itrContext;
-    for (itrContext = context_prob.begin(); itrContext != context_prob.end(); ++itrContext) {
-        context << itrContext->first << "\t ----> \t" << itrContext->second << endl;
-        entropy += (itrContext->second/100) * context_entropy[itrContext->first];
-    }
-    context.close();
-
-    cout << entropy << endl;
-
-    return 0;
+  fcm fc;
+  double res = fc.main(argv[1],atoi(argv[2]), atoi(argv[3]));
+  
+  cout << res << endl;
+  
+  return 0;
 }

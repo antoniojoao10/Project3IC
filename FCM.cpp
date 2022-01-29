@@ -16,7 +16,7 @@
 
 using namespace std;
 
-class FCM{
+class fcm{
     public:
         string print_queue(queue<char> q)
         {   
@@ -29,7 +29,7 @@ class FCM{
             return res;
         }
 
-        double main(string file, int k, int a) {
+        double main(string file, int k, double a) {
             ifstream ifs(file);
             string line;
             string allLines;
@@ -38,6 +38,7 @@ class FCM{
             map<string,int> histMapCtxChar;
             map<string,double> symbol_prob;
             map<string,double> context_prob;
+            int total_ctx_count = 0;
 
             int alph = 27;
             
@@ -60,7 +61,8 @@ class FCM{
                 if (i >= k-1 ) {
                     histMapCtx[print_queue(q)] ++;
                     if(i + 1 != allLines.size()){
-                        histMapCtxChar[print_queue(q)+" "+allLines[i+1]]++;
+                        char s = allLines[i+1];
+                        histMapCtxChar[print_queue(q)+" " + s ]++;
                     }
                 }
             }
@@ -77,9 +79,11 @@ class FCM{
 
             ofstream histCtx("histCtx.txt");
 
+
             map<string, int>::iterator itrCtx;
             for (itrCtx = histMapCtx.begin(); itrCtx != histMapCtx.end(); ++itrCtx) {
                 histCtx << itrCtx->first << "\t ----> \t" << itrCtx->second << endl;
+                total_ctx_count += itrCtx->second;
                 context_prob[itrCtx->first] = ( (double)itrCtx->second / (double)histMapCtx.size() ) * 100;
             }
             histCtx.close();
@@ -113,7 +117,7 @@ class FCM{
             map<string, double>::iterator itrContext;
             for (itrContext = context_prob.begin(); itrContext != context_prob.end(); ++itrContext) {
                 context << itrContext->first << "\t ----> \t" << itrContext->second << endl;
-                entropy += (itrContext->second/100) * context_entropy[itrContext->first];
+                entropy += (double)(histMapCtx[itrContext->first])/ total_ctx_count * context_entropy[itrContext->first];
             }
             context.close();
 
@@ -122,10 +126,14 @@ class FCM{
 };
 
 int main(int argc, char** argv) {
-  FCM fc;
-  double res = fc.main(argv[1],atoi(argv[2]), atoi(argv[3]));
+  fcm fc;
+  double res1 = fc.main(argv[1],atoi(argv[2]), (double)atoi(argv[3])/100 );
+
+  //fcm fc1;
+  //double res2 = fc1.main(argv[4],atoi(argv[2]), (double)atoi(argv[3])/100 );
   
-  cout << res << endl;
+  cout << res1 << endl;
+  //cout << res2 << endl;
   
   return 0;
 }

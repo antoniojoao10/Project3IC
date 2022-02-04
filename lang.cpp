@@ -18,8 +18,8 @@ int main(int argc, char** argv) {
 
   double res2 = fc.lang(argv[4],atoi(argv[2]), (double)atoi(argv[3])/100 );
   
-  cout << "Entropy\t\t-->\t" << res1 << endl;
-  cout << "Entropy using table from previous file\t-->\t" << res2 << endl;
+  cout << "Reference file entropy\t\t-->\t" << res1 << endl;
+  cout << "Target file entropy (using reference file table)\t-->\t" << res2 << endl;
   
   double bits_symbol = fc.nBits / fc.histMap.size() ;
   cout << "Estimated number of bits per symbol: " << bits_symbol << endl;

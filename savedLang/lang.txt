@@ -1,0 +1,12 @@
+pt_k3
+bg_k3
+cs_k3
+en_k3
+es_k3
+it_k3
+ro_k3
+sl_k3
+pl_k3
+fi_k3
+fr_k3
+hu_k3

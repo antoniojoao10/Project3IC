@@ -4,7 +4,7 @@
 
 ### Ex1
 
-$ g++ -o <ficheiro-output> ./ExA1.cpp
+$ g++ -o < ficheiro-output > ./ExA1.cpp
   
 $ ./<ficheiro-output> <ficheiro-de-entrada> <valor-k> <valor-a>cpp
 
